@@ -9,6 +9,10 @@ import SpriteKit
 
 class GameScene: SKScene {
 
+    
+    var ship = Ship()
+    var currentTouches = Set<UITouch>()
+    
     /*
      * didMove() is called when the scene is placed into
      * the view. Initialize and setup the game here.
@@ -18,6 +22,11 @@ class GameScene: SKScene {
         // // enable the FPS label
         // view.showsFPS = true
         print("didMove called")
+        
+        physicsWorld.gravity = .zero
+        
+        ship.position = CGPoint(x: frame.midX, y: frame.midY)
+        self.addChild(ship)
         
     }
     
@@ -38,7 +47,31 @@ class GameScene: SKScene {
         handleFPSLabel()
         
         // place all additonal update code below here
+        ship.update(screen: self.frame)
         
+        //touch control
+        for touch in currentTouches {
+            if touch.location(in: self).x < frame.midX {
+                ship.turnLeft()
+            }
+            else {
+                ship.turnRight()
+            }
+        }
+        
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            currentTouches.insert(touch)
+        }
+        
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            currentTouches.remove(touch)
+        }
     }
 
     
