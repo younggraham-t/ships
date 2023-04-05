@@ -8,6 +8,8 @@
 import SpriteKit
 
 class GameScene: SKScene {
+    
+    let coinSize = 10.0
 
     
     var ship = Ship()
@@ -27,6 +29,7 @@ class GameScene: SKScene {
         
         ship.position = CGPoint(x: frame.midX, y: frame.midY)
         self.addChild(ship)
+        makeCoin()
         
     }
     
@@ -74,6 +77,16 @@ class GameScene: SKScene {
         }
     }
 
+    func makeCoin() {
+        let coin = SKShapeNode(circleOfRadius: coinSize)
+        coin.fillColor = .white
+        coin.strokeColor = .white
+        coin.position.x = CGFloat.random(in: 2*coinSize...frame.maxX - 2*coinSize)
+        coin.position.y = CGFloat.random(in: 2*coinSize...frame.maxY - 2*coinSize)
+        coin.physicsBody = SKPhysicsBody(circleOfRadius: coinSize)
+        coin.physicsBody?.isDynamic = false
+        addChild(coin)
+    }
     
 
     // CHANGED
