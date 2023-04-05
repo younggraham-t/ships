@@ -11,6 +11,7 @@
 		ACCF0F7429DDC64E00B9804B /* zapThreeToneUp.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = ACCF0F7329DDC64E00B9804B /* zapThreeToneUp.mp3 */; };
 		ACCF0F7929DDC97D00B9804B /* ShipPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCF0F7829DDC97D00B9804B /* ShipPosition.swift */; };
 		ACCF0F7B29DDCA6D00B9804B /* GhostShip.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCF0F7A29DDCA6D00B9804B /* GhostShip.swift */; };
+		ACCF0F7D29DDED1E00B9804B /* zapThreeToneDown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = ACCF0F7C29DDED1E00B9804B /* zapThreeToneDown.mp3 */; };
 		D81BC2E62619E8D700A7F680 /* ShipsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D81BC2E52619E8D700A7F680 /* ShipsApp.swift */; };
 		D81BC2E82619E8D700A7F680 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D81BC2E72619E8D700A7F680 /* ContentView.swift */; };
 		D81BC2EA2619E8DC00A7F680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D81BC2E92619E8DC00A7F680 /* Assets.xcassets */; };
@@ -24,6 +25,7 @@
 		ACCF0F7329DDC64E00B9804B /* zapThreeToneUp.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zapThreeToneUp.mp3; sourceTree = "<group>"; };
 		ACCF0F7829DDC97D00B9804B /* ShipPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipPosition.swift; sourceTree = "<group>"; };
 		ACCF0F7A29DDCA6D00B9804B /* GhostShip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostShip.swift; sourceTree = "<group>"; };
+		ACCF0F7C29DDED1E00B9804B /* zapThreeToneDown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zapThreeToneDown.mp3; sourceTree = "<group>"; };
 		D81BC2E22619E8D700A7F680 /* Ships.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ships.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D81BC2E52619E8D700A7F680 /* ShipsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShipsApp.swift; sourceTree = "<group>"; };
 		D81BC2E72619E8D700A7F680 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -48,6 +50,7 @@
 		ACCF0F7529DDC66300B9804B /* audio */ = {
 			isa = PBXGroup;
 			children = (
+				ACCF0F7C29DDED1E00B9804B /* zapThreeToneDown.mp3 */,
 				ACCF0F7329DDC64E00B9804B /* zapThreeToneUp.mp3 */,
 			);
 			name = audio;
@@ -155,6 +158,7 @@
 				D81BC2ED2619E8DC00A7F680 /* Preview Assets.xcassets in Resources */,
 				ACCF0F7429DDC64E00B9804B /* zapThreeToneUp.mp3 in Resources */,
 				D81BC2EA2619E8DC00A7F680 /* Assets.xcassets in Resources */,
+				ACCF0F7D29DDED1E00B9804B /* zapThreeToneDown.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

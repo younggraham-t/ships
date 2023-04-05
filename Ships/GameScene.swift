@@ -42,7 +42,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //sound effects
     let coinSound = SKAction.playSoundFileNamed("zapThreeToneUp.mp3", waitForCompletion: false)
-    
+    let lossSound = SKAction.playSoundFileNamed("zapThreeToneDown.mp3", waitForCompletion: false)
     
     var currentTouches = Set<UITouch>()
 
@@ -139,6 +139,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
         case NodeNames.ghost.rawValue: // if nonShipNode is a ghost remove the ship and end the game
             remove(node: shipNode)
+            run(lossSound)
             endGame(isWin: false)
             return
             
@@ -157,49 +158,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
      */
     override func update(_ currentTime: TimeInterval) {
         if isGameOver {
-
-            if  restartCounter % 60 == 0 {
-                
-                playAgainLabel.removeFromParent()
-                playAgainLabel = SKLabelNode(text: "Play Again? \(restartCounter / 60)")
-                playAgainLabel.position = CGPoint(x: frame.midX, y: frame.maxY - playAgainLabel.frame.height)
-                addChild(playAgainLabel)
-            }
-            restartCounter -= 1
-            if restartCounter <= 0 {
-                setupGame()
-            }
-            
+            handleRestartTimer()
             return
         }
-        
-        if coinTime == 0.0 {
-            coinTime = currentTime
-            ghostTime = currentTime
-            
-        } else if coinTime != 0.0 && coinTime + GameSceneConstants.coinCreateTime < currentTime { //LITERAL FLAW FIX
-            makeCoin()
-            coinTime = currentTime
-        }
-        
-        if ghostTime != 0 && ghostTime + GameSceneConstants.ghostCreateTime < currentTime { //LITERAL FLAW FIX
-//            print("ghost created")
-            let ghostShip = GhostShip()
-            let _ = ghostShip.update(shipData: shipData)
-            ghosts.append(ghostShip)
-            addChild(ghostShip)
-            ghostTime = currentTime
-        }
-        
-        //move the ghost ships
-        for ghost in ghosts {
-            let shouldRemove = ghost.update(shipData: shipData)
-            if shouldRemove {
-                remove(node: ghost)
-            }
-        }
-
-        
         
         // CHANGED
         
@@ -213,6 +174,65 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let data = ShipPositon(position: ship.position, zRotation: ship.zRotation)
         shipData.append(data)
         
+        handleCoinCreation(currentTime)
+        
+        handleGhostCreation(currentTime)
+        
+        handleGhostMovement()
+
+        handleTouchControl()
+        
+        
+    }
+    
+    func handleRestartTimer() {
+        if  restartCounter % 60 == 0 {
+            
+            playAgainLabel.removeFromParent()
+            playAgainLabel = SKLabelNode(text: "Play Again? \(restartCounter / 60)")
+            playAgainLabel.position = CGPoint(x: frame.midX, y: frame.maxY - playAgainLabel.frame.height)
+            addChild(playAgainLabel)
+        }
+        restartCounter -= 1
+        if restartCounter <= 0 {
+            setupGame()
+        }
+        
+    }
+    
+    func handleCoinCreation(_ currentTime: TimeInterval) {
+        if coinTime == 0.0 {
+            coinTime = currentTime
+            ghostTime = currentTime
+            
+        } else if coinTime != 0.0 && coinTime + GameSceneConstants.coinCreateTime < currentTime { //LITERAL FLAW FIX
+            makeCoin()
+            coinTime = currentTime
+        }
+    }
+    
+    func handleGhostCreation(_ currentTime: TimeInterval) {
+        if ghostTime != 0 && ghostTime + GameSceneConstants.ghostCreateTime < currentTime { //LITERAL FLAW FIX
+//            print("ghost created")
+            let ghostShip = GhostShip()
+            let _ = ghostShip.update(shipData: shipData)
+            ghosts.append(ghostShip)
+            addChild(ghostShip)
+            ghostTime = currentTime
+        }
+    }
+    
+    func handleGhostMovement() {
+        //move the ghost ships
+        for ghost in ghosts {
+            let shouldRemove = ghost.update(shipData: shipData)
+            if shouldRemove {
+                remove(node: ghost)
+            }
+        }
+    }
+    
+    func handleTouchControl() {
         //touch control
         for touch in currentTouches {
             if touch.location(in: self).x < frame.midX {
@@ -222,7 +242,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ship.turnRight()
             }
         }
-        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
