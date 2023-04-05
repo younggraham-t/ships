@@ -22,7 +22,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let coinCreateTime = 10.0
     let ghostCreateTime = 7.0
     
-    
+    let endGameCoinCount = 15
     var isGameOver = false
     
     var ship = Ship()
@@ -70,10 +70,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard let nodeA = contact.bodyA.node else { return }
         guard let nodeB = contact.bodyB.node else { return }
         
-        if nodeA.name == NodeNames.ship.rawValue && nodeB.name == NodeNames.coin.rawValue {
-            remove(coin: nodeB)
-        } else if nodeA.name == NodeNames.coin.rawValue && nodeB.name == NodeNames.ship.rawValue {
-            remove(coin: nodeA)
+        switch nodeA.name {
+            
+        case NodeNames.ship.rawValue: //nodeA is a ship
+            handleShipCase(shipNode: nodeA, nonShipNode: nodeB)
+            return
+            
+        case NodeNames.coin.rawValue, NodeNames.ghost.rawValue: //nodeA isn't a ship
+            break
+            
+        case _: // should never happen as long as the names are correct
+            //probably should throw an error but it shouldn't be a problem and i dont want to deal with that right now
+            print("invalid name for nodeA")
+            
+        }
+        
+        switch nodeB.name {
+            
+        case NodeNames.ship.rawValue: //nodeB is a ship
+            handleShipCase(shipNode: nodeB, nonShipNode: nodeA)
+            return
+            
+        case NodeNames.coin.rawValue, NodeNames.ghost.rawValue: //nodeB isn't a ship
+            break
+            
+        case _: // should never happen as long as the names are correct
+            //probably should throw an error but it shouldn't be a problem and i dont want to deal with that right now
+            print("invalid name for nodeB")
+        }
+        
+    }
+    
+    func handleShipCase(shipNode: SKNode, nonShipNode: SKNode) {
+        switch nonShipNode.name {
+            
+        case NodeNames.coin.rawValue: // if nonShipNode is a coin remove the coin and continue
+            remove(node: nonShipNode) //remove(node:) calls remove(coin:) if it's a coin
+            return
+            
+        case NodeNames.ghost.rawValue: // if nonShipNode is a ghost remove the ship and end the game
+            remove(node: shipNode)
+            endGame()
+            return
+            
+        case _: // should never happen as long as the names are correct
+            //probably should throw an error but it shouldn't be a problem and i dont want to deal with that right now
+            print("invalid name for nonShipNode")
+            return
         }
     }
 
@@ -99,14 +142,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if ghostTime != 0 && ghostTime + ghostCreateTime < currentTime { //LITERAL FLAW FIX
 //            print("ghost created")
             let ghostShip = GhostShip()
-            ghostShip.update(shipData: shipData)
+            let _ = ghostShip.update(shipData: shipData)
             ghosts.append(ghostShip)
             addChild(ghostShip)
+            ghostTime = currentTime
         }
         
         //move the ghost ships
         for ghost in ghosts {
-            ghost.update(shipData: shipData)
+            let shouldRemove = ghost.update(shipData: shipData)
+            if shouldRemove {
+                remove(node: ghost)
+            }
         }
 
         
@@ -163,6 +210,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(coin)
     }
     
+    func remove(node: SKNode) {
+        switch node.name {
+        case NodeNames.coin.rawValue:
+            remove(coin: node)
+            return
+        case NodeNames.ship.rawValue, NodeNames.ghost.rawValue:
+            node.removeFromParent()
+            return
+        case _:
+            print("Invalid name")
+            return
+        }
+    }
+    
     func remove(coin: SKNode) {
         coinCount += 1
         coinLabel.text = String("Coins: \(coinCount)")
@@ -171,12 +232,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         coin.removeFromParent()
         
-        if coinCount == 2 {
-            isGameOver = true
-            let endLabel = SKLabelNode(text: "Game Over")
-            endLabel.position = CGPoint(x: frame.midX, y: frame.midY)
-            addChild(endLabel)
+        if coinCount == endGameCoinCount {
+            endGame()
+            let winLabel = SKLabelNode(text: "You Win!")
+            winLabel.position = CGPoint(x: frame.midX, y: frame.midY - (frame.midY/2))// display it halfway between bottom and middle
+            addChild(winLabel)
         }
+    }
+    
+    func endGame() {
+        isGameOver = true
+        let endLabel = SKLabelNode(text: "Game Over")
+        endLabel.position = CGPoint(x: frame.midX, y: frame.midY)
+        addChild(endLabel)
+        ship.stopShip()
     }
 
     // CHANGED

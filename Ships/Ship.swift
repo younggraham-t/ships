@@ -91,12 +91,16 @@ class Ship : SKShapeNode {
     let turnDuration = 0.25
     
     func turnLeft() {
-        let turnAction = SKAction.rotate(byAngle: CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX
+        let turnAction = SKAction.rotate(byAngle: CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX, DESCRIPTIVE NAME CHANGE
         self.run(turnAction)
     }
  
     func turnRight() {
-        let turnAction = SKAction.rotate(byAngle: -CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX
+        let turnAction = SKAction.rotate(byAngle: -CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX, DESCRIPTIVE NAME CHANGE
         self.run(turnAction)
+    }
+    
+    func stopShip() {
+        self.physicsBody?.velocity = .zero
     }
 }
