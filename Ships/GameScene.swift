@@ -13,16 +13,20 @@ enum NodeNames: String {
     case coin
 }
 
-
+struct GameSceneConstants {
+    static let restartCountdownDefaultValue = 300
+    static let coinSize = 10.0
+    static let coinLabelPosition = CGPoint(x: 100, y: 150)
+    static let coinCreateTime = 10.0
+    static let ghostCreateTime = 7.0
+    static let endGameCoinCount = 2
+}
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    let coinSize = 10.0
-    let coinLabelPosition = CGPoint(x: 100, y: 150)
-    let coinCreateTime = 10.0
-    let ghostCreateTime = 7.0
+
     
-    let endGameCoinCount = 15
+    
     var isGameOver = false
     
     var ship = Ship()
@@ -30,14 +34,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var coinTime = 0.0
     var ghostTime = 0.0
+    var restartCounter = GameSceneConstants.restartCountdownDefaultValue // 600/60 = 10 (10 second countdown)
     
     var shipData = [ShipPositon]()
     var ghosts = [GhostShip]()
     
+    
+    //sound effects
     let coinSound = SKAction.playSoundFileNamed("zapThreeToneUp.mp3", waitForCompletion: false)
     
-    var currentTouches = Set<UITouch>()
     
+    var currentTouches = Set<UITouch>()
+
     var coinLabel = SKLabelNode(text: "Coins: 0")
     
     /*
@@ -50,11 +58,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // view.showsFPS = true
         print("didMove called")
         
-        coinLabel.position = coinLabelPosition
+        setupGame()
+        
+    }
+    
+    func resetAllVariables() {
+        self.removeAllChildren()
+        isGameOver = false
+        ship = Ship()
+        coinCount = 0
+        coinTime = 0.0
+        ghostTime = 0.0
+        restartCounter = GameSceneConstants.restartCountdownDefaultValue // 600/60 = 10 (10 second countdown)
+        shipData = [ShipPositon]()
+        ghosts = [GhostShip]()
+        currentTouches = Set<UITouch>()
+        coinLabel = SKLabelNode(text: "Coins: 0")
+    }
+    
+    
+    func setupGame() {
+        //reset the game for later calls of setupGame
+        self.resetAllVariables() //does nothing on initial call
+        
+        coinLabel.position = GameSceneConstants.coinLabelPosition
         addChild(coinLabel)
-        
-        //sound effects
-        
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
@@ -62,6 +90,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ship.position = CGPoint(x: frame.midX, y: frame.midY)
         self.addChild(ship)
         makeCoin()
+
         
     }
     
@@ -110,7 +139,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
         case NodeNames.ghost.rawValue: // if nonShipNode is a ghost remove the ship and end the game
             remove(node: shipNode)
-            endGame()
+            endGame(isWin: false)
             return
             
         case _: // should never happen as long as the names are correct
@@ -120,6 +149,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    var playAgainLabel = SKLabelNode()
     /*
      * update() is called on for each new frame before the
      * scene is drawn. Make the code as streamlined as possible
@@ -127,6 +157,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
      */
     override func update(_ currentTime: TimeInterval) {
         if isGameOver {
+
+            if  restartCounter % 60 == 0 {
+                
+                playAgainLabel.removeFromParent()
+                playAgainLabel = SKLabelNode(text: "Play Again? \(restartCounter / 60)")
+                playAgainLabel.position = CGPoint(x: frame.midX, y: frame.maxY - playAgainLabel.frame.height)
+                addChild(playAgainLabel)
+            }
+            restartCounter -= 1
+            if restartCounter <= 0 {
+                setupGame()
+            }
+            
             return
         }
         
@@ -134,12 +177,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             coinTime = currentTime
             ghostTime = currentTime
             
-        } else if coinTime != 0.0 && coinTime + coinCreateTime < currentTime { //LITERAL FLAW FIX
+        } else if coinTime != 0.0 && coinTime + GameSceneConstants.coinCreateTime < currentTime { //LITERAL FLAW FIX
             makeCoin()
             coinTime = currentTime
         }
         
-        if ghostTime != 0 && ghostTime + ghostCreateTime < currentTime { //LITERAL FLAW FIX
+        if ghostTime != 0 && ghostTime + GameSceneConstants.ghostCreateTime < currentTime { //LITERAL FLAW FIX
 //            print("ghost created")
             let ghostShip = GhostShip()
             let _ = ghostShip.update(shipData: shipData)
@@ -196,13 +239,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func makeCoin() {
-        let coin = SKShapeNode(circleOfRadius: coinSize)
+        let coin = SKShapeNode(circleOfRadius: GameSceneConstants.coinSize)
         coin.fillColor = .yellow
         coin.strokeColor = .white
         
-        coin.position.x = CGFloat.random(in: 2*coinSize...frame.maxX - 2*coinSize) //LITERAL FLAW FIX
-        coin.position.y = CGFloat.random(in: 2*coinSize...frame.maxY - 2*coinSize) //LITERAL FLAW FIX
-        coin.physicsBody = SKPhysicsBody(circleOfRadius: coinSize) //LITERAL FLAW FIX
+        coin.position.x = CGFloat.random(in: 2*GameSceneConstants.coinSize...frame.maxX - 2*GameSceneConstants.coinSize) //LITERAL FLAW FIX
+        coin.position.y = CGFloat.random(in: 2*GameSceneConstants.coinSize...frame.maxY - 2*GameSceneConstants.coinSize) //LITERAL FLAW FIX
+        coin.physicsBody = SKPhysicsBody(circleOfRadius: GameSceneConstants.coinSize) //LITERAL FLAW FIX
         coin.physicsBody?.isDynamic = false
         coin.physicsBody?.collisionBitMask = 0b0000
         coin.physicsBody?.contactTestBitMask = 0b0001
@@ -232,20 +275,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         coin.removeFromParent()
         
-        if coinCount == endGameCoinCount {
-            endGame()
-            let winLabel = SKLabelNode(text: "You Win!")
-            winLabel.position = CGPoint(x: frame.midX, y: frame.midY - (frame.midY/2))// display it halfway between bottom and middle
-            addChild(winLabel)
+        if coinCount == GameSceneConstants.endGameCoinCount {
+            endGame(isWin: true)
+
         }
     }
     
-    func endGame() {
+    func endGame(isWin: Bool) {
         isGameOver = true
-        let endLabel = SKLabelNode(text: "Game Over")
+        let labelText = isWin ? "You Win!" : "Game Over"
+        let endLabel = SKLabelNode(text: labelText)
         endLabel.position = CGPoint(x: frame.midX, y: frame.midY)
         addChild(endLabel)
         ship.stopShip()
+        
+        
     }
 
     // CHANGED
