@@ -7,13 +7,38 @@
 
 import SpriteKit
 
-class GameScene: SKScene {
+enum NodeNames: String {
+    case ship
+    case ghost
+    case coin
+}
+
+
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     let coinSize = 10.0
-
+    let coinLabelPosition = CGPoint(x: 100, y: 150)
+    let coinCreateTime = 10.0
+    let ghostCreateTime = 7.0
+    
+    
+    var isGameOver = false
     
     var ship = Ship()
+    var coinCount: Int = 0
+    
+    var coinTime = 0.0
+    var ghostTime = 0.0
+    
+    var shipData = [ShipPositon]()
+    var ghosts = [GhostShip]()
+    
+    let coinSound = SKAction.playSoundFileNamed("zapThreeToneUp.mp3", waitForCompletion: false)
+    
     var currentTouches = Set<UITouch>()
+    
+    var coinLabel = SKLabelNode(text: "Coins: 0")
     
     /*
      * didMove() is called when the scene is placed into
@@ -25,7 +50,14 @@ class GameScene: SKScene {
         // view.showsFPS = true
         print("didMove called")
         
+        coinLabel.position = coinLabelPosition
+        addChild(coinLabel)
+        
+        //sound effects
+        
+        
         physicsWorld.gravity = .zero
+        physicsWorld.contactDelegate = self
         
         ship.position = CGPoint(x: frame.midX, y: frame.midY)
         self.addChild(ship)
@@ -34,6 +66,16 @@ class GameScene: SKScene {
     }
     
 
+    func didBegin(_ contact: SKPhysicsContact) {
+        guard let nodeA = contact.bodyA.node else { return }
+        guard let nodeB = contact.bodyB.node else { return }
+        
+        if nodeA.name == NodeNames.ship.rawValue && nodeB.name == NodeNames.coin.rawValue {
+            remove(coin: nodeB)
+        } else if nodeA.name == NodeNames.coin.rawValue && nodeB.name == NodeNames.ship.rawValue {
+            remove(coin: nodeA)
+        }
+    }
 
     /*
      * update() is called on for each new frame before the
@@ -41,7 +83,34 @@ class GameScene: SKScene {
      * since it runs (hopefully) 60 times a second.
      */
     override func update(_ currentTime: TimeInterval) {
+        if isGameOver {
+            return
+        }
+        
+        if coinTime == 0.0 {
+            coinTime = currentTime
+            ghostTime = currentTime
+            
+        } else if coinTime != 0.0 && coinTime + coinCreateTime < currentTime { //LITERAL FLAW FIX
+            makeCoin()
+            coinTime = currentTime
+        }
+        
+        if ghostTime != 0 && ghostTime + ghostCreateTime < currentTime { //LITERAL FLAW FIX
+//            print("ghost created")
+            let ghostShip = GhostShip()
+            ghostShip.update(shipData: shipData)
+            ghosts.append(ghostShip)
+            addChild(ghostShip)
+        }
+        
+        //move the ghost ships
+        for ghost in ghosts {
+            ghost.update(shipData: shipData)
+        }
 
+        
+        
         // CHANGED
         
         // after the videos were recorded, changes in SpriteKit
@@ -51,6 +120,8 @@ class GameScene: SKScene {
         
         // place all additonal update code below here
         ship.update(screen: self.frame)
+        let data = ShipPositon(position: ship.position, zRotation: ship.zRotation)
+        shipData.append(data)
         
         //touch control
         for touch in currentTouches {
@@ -79,15 +150,34 @@ class GameScene: SKScene {
 
     func makeCoin() {
         let coin = SKShapeNode(circleOfRadius: coinSize)
-        coin.fillColor = .white
+        coin.fillColor = .yellow
         coin.strokeColor = .white
-        coin.position.x = CGFloat.random(in: 2*coinSize...frame.maxX - 2*coinSize)
-        coin.position.y = CGFloat.random(in: 2*coinSize...frame.maxY - 2*coinSize)
-        coin.physicsBody = SKPhysicsBody(circleOfRadius: coinSize)
+        
+        coin.position.x = CGFloat.random(in: 2*coinSize...frame.maxX - 2*coinSize) //LITERAL FLAW FIX
+        coin.position.y = CGFloat.random(in: 2*coinSize...frame.maxY - 2*coinSize) //LITERAL FLAW FIX
+        coin.physicsBody = SKPhysicsBody(circleOfRadius: coinSize) //LITERAL FLAW FIX
         coin.physicsBody?.isDynamic = false
+        coin.physicsBody?.collisionBitMask = 0b0000
+        coin.physicsBody?.contactTestBitMask = 0b0001
+        coin.name = NodeNames.coin.rawValue
         addChild(coin)
     }
     
+    func remove(coin: SKNode) {
+        coinCount += 1
+        coinLabel.text = String("Coins: \(coinCount)")
+        
+        self.run(coinSound)
+        
+        coin.removeFromParent()
+        
+        if coinCount == 2 {
+            isGameOver = true
+            let endLabel = SKLabelNode(text: "Game Over")
+            endLabel.position = CGPoint(x: frame.midX, y: frame.midY)
+            addChild(endLabel)
+        }
+    }
 
     // CHANGED
 

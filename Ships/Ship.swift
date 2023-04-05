@@ -12,7 +12,7 @@ class Ship : SKShapeNode {
     
     
     let r = 10.0
-    let sp = 125.0
+    let shipSpeed = 125.0
     override init() {
         super.init()
         
@@ -24,12 +24,15 @@ class Ship : SKShapeNode {
         path.addLine(to: CGPoint(x: 0.0, y: r * 2.0))
         self.path = path.cgPath
         
-        self.fillColor = .orange
+        self.fillColor = .green
         self.strokeColor = .white
         self.glowWidth = 1.0
         self.isAntialiased = true
         
         self.physicsBody = SKPhysicsBody(polygonFrom: path.cgPath)
+        self.physicsBody?.collisionBitMask = 0b0000
+        self.physicsBody?.contactTestBitMask = 0b0001
+        self.name = NodeNames.ship.rawValue
         
         
     }
@@ -41,8 +44,8 @@ class Ship : SKShapeNode {
     func update(screen: CGRect) {
         //rotate the initial rotation by pi/2 because it starts at 0 radians and the shape points at pi/2 to start
         let theta = Double(zRotation + CGFloat.pi / 2)
-        let dx = CGFloat(sp * cos(theta))
-        let dy = CGFloat(sp * sin(theta))
+        let dx = CGFloat(shipSpeed * cos(theta))
+        let dy = CGFloat(shipSpeed * sin(theta))
         self.physicsBody?.velocity = CGVector(dx: dx, dy: dy)
         
         // teleport if needed
@@ -69,28 +72,31 @@ class Ship : SKShapeNode {
     
     func handleTeleport(screen:CGRect, direction: TeleportDirection, moveTo: CGFloat) {
         
-        let action: SKAction
+        let teleportAction: SKAction
         switch direction {
         case .posX:
-            action = SKAction.moveTo(x: moveTo, duration: 0.0)
+            teleportAction = SKAction.moveTo(x: moveTo, duration: 0.0)
         case .negX:
-            action = SKAction.moveTo(x: moveTo, duration: 0.0)
+            teleportAction = SKAction.moveTo(x: moveTo, duration: 0.0)
         case .posY:
-            action = SKAction.moveTo(y: moveTo, duration: 0.0)
+            teleportAction = SKAction.moveTo(y: moveTo, duration: 0.0)
         case .negY:
-            action = SKAction.moveTo(y: moveTo, duration: 0.0)
+            teleportAction = SKAction.moveTo(y: moveTo, duration: 0.0)
         }
-        self.run(action)
+        self.run(teleportAction)
     
     }
     
+    let turnRadius = CGFloat.pi / 80
+    let turnDuration = 0.25
+    
     func turnLeft() {
-        let action = SKAction.rotate(byAngle: CGFloat(CGFloat.pi / 80), duration: 0.25)
-        self.run(action)
+        let turnAction = SKAction.rotate(byAngle: CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX
+        self.run(turnAction)
     }
  
     func turnRight() {
-        let action = SKAction.rotate(byAngle: -CGFloat(CGFloat.pi / 80), duration: 0.25)
-        self.run(action)
+        let turnAction = SKAction.rotate(byAngle: -CGFloat(turnRadius), duration: turnDuration) //LITERAL FLAW FIX
+        self.run(turnAction)
     }
 }
